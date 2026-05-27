@@ -76,6 +76,7 @@ model Lead {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   quotations  Quotation[]
+  orders      Order[]
 
   @@index([storeId])
   @@index([status])
@@ -92,6 +93,7 @@ model Product {
   deletedAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  inventory   Inventory?
 
   @@unique([sku, storeId])
   @@index([storeId])
@@ -119,7 +121,45 @@ model Quotation {
   storeId          String?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
+  orders      Order[]
 
   @@index([leadId])
   @@index([storeId])
+}
+
+enum OrderStatus {
+  CONFIRMED
+  IN_PRODUCTION
+  READY
+  DISPATCHED
+  INSTALLED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  leadId      String
+  lead        Lead        @relation(fields: [leadId], references: [id])
+  quotationId String?
+  quotation   Quotation?  @relation(fields: [quotationId], references: [id])
+  status      OrderStatus @default(CONFIRMED)
+  totalAmount Float
+  storeId     String?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([leadId])
+  @@index([storeId])
+}
+
+model Inventory {
+  id             String   @id @default(cuid())
+  productId      String   @unique
+  product        Product  @relation(fields: [productId], references: [id])
+  qtyAvailable   Int      @default(0)
+  qtyReserved    Int      @default(0)
+  qtyInTransit   Int      @default(0)
+  storeId        String?
+  updatedAt      DateTime @updatedAt
 }
