@@ -69,8 +69,8 @@ model Lead {
   status      LeadStatus @default(NEW)
   lostReason  String?
   lostNote    String?
-  storeId     String
-  store       Store      @relation(fields: [storeId], references: [id])
+  storeId     String?
+  store       Store?      @relation(fields: [storeId], references: [id])
   assignedTo  String?
   assignedUser User?     @relation("AssignedLeads", fields: [assignedTo], references: [id])
   createdAt   DateTime   @default(now())
