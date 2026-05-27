@@ -2,22 +2,27 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase-server'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  try {
+    const { prisma } = await import('@/lib/prisma')
+    const { createClient } = await import('@/lib/supabase-server')
 
-  const body = await req.json()
-  const lead = await prisma.lead.update({
-    where: { id: params.id },
-    data: {
-      status: body.status,
-      lostReason: body.lostReason,
-      lostNote: body.lostNote,
-    }
-  })
-  return NextResponse.json(lead)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const body = await req.json()
+    const lead = await prisma.lead.update({
+      where: { id: params.id },
+      data: {
+        status: body.status,
+        lostReason: body.lostReason,
+        lostNote: body.lostNote,
+      }
+    })
+    return NextResponse.json(lead)
+  } catch (e) {
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
 }
