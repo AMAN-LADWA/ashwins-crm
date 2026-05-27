@@ -75,8 +75,51 @@ model Lead {
   assignedUser User?     @relation("AssignedLeads", fields: [assignedTo], references: [id])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  quotations  Quotation[]
 
   @@index([storeId])
   @@index([status])
   @@index([assignedTo])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  sku         String
+  name        String
+  category    String?
+  price       Float
+  storeId     String?
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([sku, storeId])
+  @@index([storeId])
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+}
+
+model Quotation {
+  id               String          @id @default(cuid())
+  leadId           String
+  lead             Lead            @relation(fields: [leadId], references: [id])
+  status           QuotationStatus @default(DRAFT)
+  lineItems        Json
+  transportCost    Float           @default(0)
+  installationCost Float           @default(0)
+  taxPercent       Float           @default(0)
+  totalAmount      Float
+  pdfUrl           String?
+  sentAt           DateTime?
+  storeId          String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([leadId])
+  @@index([storeId])
 }
