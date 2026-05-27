@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum LeadSource {
+  WALK_IN
+  BNI
+  TIE_UP
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  WON
+  LOST
+}
+
+enum UserRole {
+  ADMIN
+  MANAGEMENT
+  STORE_MANAGER
+  SALES_EXECUTIVE
+  ACCOUNTS
+  INSTALLER
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  leads     Lead[]
+  users     User[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      UserRole
+  storeId   String?
+  store     Store?   @relation(fields: [storeId], references: [id])
+  leads     Lead[]   @relation("AssignedLeads")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id          String     @id @default(cuid())
+  name        String
+  phone       String
+  email       String?
+  source      LeadSource
+  sourceNote  String?
+  status      LeadStatus @default(NEW)
+  lostReason  String?
+  lostNote    String?
+  storeId     String
+  store       Store      @relation(fields: [storeId], references: [id])
+  assignedTo  String?
+  assignedUser User?     @relation("AssignedLeads", fields: [assignedTo], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([storeId])
+  @@index([status])
+  @@index([assignedTo])
+}
